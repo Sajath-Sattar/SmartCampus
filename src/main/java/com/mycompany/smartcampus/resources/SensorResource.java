@@ -43,4 +43,30 @@ public class SensorResource {
     public SensorReadingResource getReadingResource(@PathParam("id") String id) {
         return new SensorReadingResource(id);
     }
+    @DELETE
+    @Path("/{id}")
+    public Response deleteSensor(@PathParam("id") String id) {
+
+        Sensor sensor = DataStore.sensors.get(id);
+
+        if (sensor == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"Sensor not found\"}")
+                    .build();
+        }
+
+        // Remove sensor from room
+        String roomId = sensor.getRoomId();
+        if (roomId != null && DataStore.rooms.containsKey(roomId)) {
+            DataStore.rooms.get(roomId).getSensorIds().remove(id);
+        }
+
+        // Remove sensor
+        DataStore.sensors.remove(id);
+
+        // Remove readings
+        DataStore.readings.remove(id);
+
+        return Response.noContent().build();
+    }
 }
